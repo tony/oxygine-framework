@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "TextActor.h"
+#include "TextField.h"
 #include "Font.h"
 #include "core/Renderer.h"
 #include "core/Texture.h"
@@ -16,7 +16,7 @@
 
 namespace oxygine
 {
-	TextActor::TextActor():
+	TextField::TextField():
 		_root(0),
 		_textRect(0,0,0,0)
 	{
@@ -27,13 +27,13 @@ namespace oxygine
 		}
 	}
 
-	TextActor::~TextActor()
+	TextField::~TextField()
 	{
 		delete _root;
 		_root = 0;
 	}
 
-	void TextActor::copyFrom(const TextActor &src, cloneOptions opt)
+	void TextField::copyFrom(const TextField &src, cloneOptions opt)
 	{
 		VStyleActor::copyFrom(src, opt);
 		_text = src._text;
@@ -44,54 +44,54 @@ namespace oxygine
 		_textRect = src._textRect;
 	}
 
-	bool TextActor::isOn(const Vector2 &localPosition)
+	bool TextField::isOn(const Vector2 &localPosition)
 	{
 		Rect r = getTextRect();
 		r.expand(Point(_extendedIsOn, _extendedIsOn), Point(_extendedIsOn, _extendedIsOn));
 		return r.pointIn(Point((int)localPosition.x, (int)localPosition.y));
 	}
 
-	void TextActor::needRebuild()
+	void TextField::needRebuild()
 	{
 		_flags |= flag_rebuild;
 	}
 
-	void TextActor::setVAlign(TextStyle::VerticalAlign align)
+	void TextField::setVAlign(TextStyle::VerticalAlign align)
 	{
 		_style.vAlign = align;
 		needRebuild();
 	}
 
-	void TextActor::setMultiline(bool multiline)
+	void TextField::setMultiline(bool multiline)
 	{
 		_style.multiline = multiline;
 		needRebuild();
 	}
 
-	void TextActor::setLinesOffset(int offset)
+	void TextField::setLinesOffset(int offset)
 	{
 		_style.linesOffset = offset;
 		needRebuild();
 	}
 
-	void TextActor::setFontSize2Scale(int scale2size)
+	void TextField::setFontSize2Scale(int scale2size)
 	{
 		_style.fontSize2Scale = scale2size;
 		needRebuild();
 	}
 
-	void TextActor::setFont(Font *font)
+	void TextField::setFont(Font *font)
 	{
 		_style.font = font;
 	}
 
-	void TextActor::setHAlign(TextStyle::HorizontalAlign align)
+	void TextField::setHAlign(TextStyle::HorizontalAlign align)
 	{
 		_style.hAlign = align;
 		needRebuild();
 	}
 
-	void TextActor::setStyle(const TextStyle &st)
+	void TextField::setStyle(const TextStyle &st)
 	{
 		TextStyle::HorizontalAlign halign = _style.hAlign;
 		TextStyle::VerticalAlign valign = _style.vAlign;
@@ -106,12 +106,12 @@ namespace oxygine
 		needRebuild();
 	}
 
-	void TextActor::sizeChanged(const Vector2& size)
+	void TextField::sizeChanged(const Vector2& size)
 	{
 		needRebuild();
 	}
 
-	void TextActor::setText(const string &str)
+	void TextField::setText(const string &str)
 	{
 		_flags &= ~flag_html;
 		if (_text != str)
@@ -121,12 +121,12 @@ namespace oxygine
 		}
 	}
 
-	void TextActor::setText(const wstring &str)
+	void TextField::setText(const wstring &str)
 	{
 		setText(ws2utf8(str.c_str()));
 	}
 
-	void TextActor::setHtmlText(const string &str)
+	void TextField::setHtmlText(const string &str)
 	{
 		_flags |= flag_html;
 		if (_text != str)
@@ -136,18 +136,38 @@ namespace oxygine
 		}
 	}
 
-	void TextActor::setHtmlText(const wstring &str)
+	void TextField::setHtmlText(const wstring &str)
 	{
 		setHtmlText(ws2utf8(str.c_str()));
 	}
 
-	const Rect &TextActor::getTextRect()
+	int TextField::getFontSize2Scale() const
+	{
+		return _style.fontSize2Scale;
+	}
+
+	TextStyle::VerticalAlign	TextField::getVAlign() const
+	{
+		return _style.vAlign;
+	}
+
+	TextStyle::HorizontalAlign	TextField::getHAlign() const
+	{
+		return _style.hAlign;
+	}
+
+	bool TextField::getMultiline() const
+	{
+		return _style.multiline;
+	}
+
+	const Rect &TextField::getTextRect()
 	{
 		getRootNode();
 		return _textRect;
 	}
 
-	text::Node *TextActor::getRootNode()
+	text::Node *TextField::getRootNode()
 	{
 		if ((_flags & flag_rebuild) && _style.font)
 		{
@@ -210,8 +230,8 @@ namespace oxygine
 			return "left";
 		case TextStyle::HALIGN_RIGHT:
 			return "right";
-		case TextStyle::HALIGN_CENTER:
-			return "center";
+		case TextStyle::HALIGN_MIDDLE:
+			return "middle";
 		}
 		return "unknown";
 	}
@@ -240,10 +260,10 @@ namespace oxygine
 		return stream.str();
 	}
 
-	std::string TextActor::dump(const dumpOptions &options) const
+	std::string TextField::dump(const dumpOptions &options) const
 	{
 		stringstream stream;
-		stream << "{TextActor}\n";
+		stream << "{TextField}\n";
 		stream << _vstyle.dump();
 		string text = _text;
 		if (text.size() > 15)
@@ -261,7 +281,7 @@ namespace oxygine
 			stream << " htmlMode";
 		}
 
-		Rect r = const_cast<TextActor*>(this)->getTextRect();
+		Rect r = const_cast<TextField*>(this)->getTextRect();
 		stream << " textRect=("<< r.pos.x << ", "<< r.pos.y << ", "<< r.size.x << ", "<< r.size.y << ")";
 		
 		stream << "\n" << Actor::dump(options);
@@ -272,7 +292,7 @@ namespace oxygine
 
 //#define  SD_FONT
 
-	void TextActor::doRender(RenderState const& rs)
+	void TextField::doRender(RenderState const& rs)
 	{
 		text::Node *root = getRootNode();
 		if (!root)
@@ -299,7 +319,7 @@ namespace oxygine
 #endif		
 	}
 
-	void TextActor::serialize(serializedata* data)
+	void TextField::serialize(serializedata* data)
 	{
 		VStyleActor::serialize(data);
 		pugi::xml_node node = data->node;
@@ -312,10 +332,10 @@ namespace oxygine
 		setAttr(node, "valign", _style.vAlign, def.vAlign);
 		setAttr(node, "halign", _style.hAlign, def.hAlign);
 		setAttr(node, "multiline", _style.multiline, def.multiline);
-		node.set_name("TextActor");
+		node.set_name("TextField");
 	}
 
-	void TextActor::deserialize(const deserializedata* data)
+	void TextField::deserialize(const deserializedata* data)
 	{
 		VStyleActor::deserialize(data);
 		pugi::xml_node node = data->node;
