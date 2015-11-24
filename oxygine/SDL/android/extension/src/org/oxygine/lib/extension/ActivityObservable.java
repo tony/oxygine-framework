@@ -1,4 +1,4 @@
-package org.oxygine.lib;
+package org.oxygine.lib.extension;
 
 import android.app.Activity;
 import android.content.Intent;
